@@ -1,0 +1,323 @@
+{
+  "name": "GMail Automation",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        -25
+      ],
+      "id": "8076b232-dab5-48dd-8eac-153dbbe3066e",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Loop over input items and add a new field called 'myNewField' to the JSON of each one\nfor (const item of $input.all()) {\n  var domain = item.json.From.split(\"@\")[1].replace(\">\",\"\");\n  item.json.sender = domain;\n  item.json.email_id = item.json.id;\n}\n\nreturn $input.all();"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        440,
+        -25
+      ],
+      "id": "a6d996a9-97ee-490e-957b-dc674f8dc3e7",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "limit": 500,
+        "filters": {
+          "labelIds": [
+            "INBOX"
+          ],
+          "readStatus": "unread"
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        220,
+        -20
+      ],
+      "id": "161197bf-b7e1-4628-8615-24cb05f94928",
+      "name": "Get Messages",
+      "webhookId": "6b307bc8-f5e5-48ae-ac7d-4e2964978dd0",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "2vjlZHFBswthiweR",
+          "name": "Gmail account (main email)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "label",
+        "operation": "create",
+        "name": "={{ $json.sender }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        660,
+        -100
+      ],
+      "id": "fe7c3f0b-2b10-4fe9-b9ae-f2f4ecd1f4e7",
+      "name": "Create a label",
+      "webhookId": "ecefe466-58ef-4594-b01f-9502c9cedfb1",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "2vjlZHFBswthiweR",
+          "name": "Gmail account (main email)"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "resource": "label",
+        "returnAll": true
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        880,
+        -100
+      ],
+      "id": "7c606acf-bcb9-49b4-ab49-ffc9e5991be1",
+      "name": "Get many labels",
+      "webhookId": "d697cbfd-18b7-458f-80db-afd0e026e758",
+      "executeOnce": true,
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "2vjlZHFBswthiweR",
+          "name": "Gmail account (main email)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "advanced": true,
+        "mergeByFields": {
+          "values": [
+            {
+              "field1": "name",
+              "field2": "sender"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1320,
+        -25
+      ],
+      "id": "2f4148e0-b4f2-4ec9-8677-50a289da0685",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "operation": "addLabels",
+        "messageId": "={{ $json.email_id }}",
+        "labelIds": "={{ $json.label_id }}"
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1540,
+        -20
+      ],
+      "id": "749f4095-b003-4919-85c3-a875096773f9",
+      "name": "Add label to message",
+      "webhookId": "178214ed-16d9-4b70-a0cb-a0ef1ea8c267",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "2vjlZHFBswthiweR",
+          "name": "Gmail account (main email)"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "operation": "removeLabels",
+        "messageId": "={{ $json.id }}",
+        "labelIds": [
+          "INBOX"
+        ]
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1780,
+        -80
+      ],
+      "id": "1ae38b21-6145-43ba-b965-3288350c9d2d",
+      "name": "Remove label from message",
+      "webhookId": "39cdf285-b71f-4b62-9609-b5764fe912ba",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "2vjlZHFBswthiweR",
+          "name": "Gmail account (main email)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Loop over input items and add a new field called 'myNewField' to the JSON of each one\nfor (const item of $input.all()) {\n  item.json.label_id = item.json.id;\n  delete item.json.id;\n}\n\nreturn $input.all();"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1100,
+        -100
+      ],
+      "id": "5d92d4b4-dd70-41dc-9582-d232f94007c0",
+      "name": "Code1"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 15
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        360,
+        -320
+      ],
+      "id": "47ddab03-62a6-4409-befc-2e023ae4017e",
+      "name": "Schedule Trigger"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Get Messages",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Messages": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "Create a label",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Create a label": {
+      "main": [
+        [
+          {
+            "node": "Get many labels",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get many labels": {
+      "main": [
+        [
+          {
+            "node": "Code1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Add label to message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add label to message": {
+      "main": [
+        [
+          {
+            "node": "Remove label from message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code1": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get Messages",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "f85cbfdd-524f-44d1-8100-d3fbfdadebac",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "1ff95967d3c037a048e0d24a9e435f8f6aa94eafb827153529e6937c4a1310db"
+  },
+  "id": "5cqXPkeFi4SArGT1",
+  "tags": []
+}
