@@ -14,7 +14,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Loop over input items and add a new field called 'myNewField' to the JSON of each one\nfor (const item of $input.all()) {\n  var domain = item.json.From.split(\"@\")[1].replace(\">\",\"\");\n  item.json.sender = domain;\n  item.json.email_id = item.json.id;\n}\n\nreturn $input.all();"
+        "jsCode": "// Loop over input items and add a new field called 'myNewField' to the JSON of each one\nfor (const item of $input.all()) {\n  try {\n    var domain = item.json.From.split(\"@\")[1].replace(\">\",\"\");\n    item.json.sender = domain;\n    item.json.email_id = item.json.id;\n  } catch (error) {\n    continue;\n  }\n}\n\nreturn $input.all();"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -187,7 +187,7 @@
           "interval": [
             {
               "field": "minutes",
-              "minutesInterval": 15
+              "minutesInterval": 30
             }
           ]
         }
@@ -313,7 +313,7 @@
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "f85cbfdd-524f-44d1-8100-d3fbfdadebac",
+  "versionId": "37a1a931-8cd9-4318-bbce-ed552bbbb006",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "1ff95967d3c037a048e0d24a9e435f8f6aa94eafb827153529e6937c4a1310db"
